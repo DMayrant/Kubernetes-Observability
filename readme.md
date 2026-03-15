@@ -1,5 +1,7 @@
 # Kubernetes-Observability 📈
 
+This system runs on a Jenkins CI/CD server with automated security scans for compliance with OWASP Top 10, NSA, CIS Benchmarks and the NIST-800 53
+
 Prometheus and Grafana the primary observability and metrics tools used within the a Kubernetes cluster. These work well together in production but carry out different task. Grafana give you direct visualization of metrics while prometheus acts as a metrics engine database. 
 
 # Grafana 📊
