@@ -15,6 +15,6 @@ http://localhost:3000
 
 # Prometheus 🧰
 
-Prometheus is a metrics engine database that scrapes metrics every few seconds and send them to Time Series Database (TSDB) and uses PromQL as a query language to send queries to Grafana for visualization 
+Prometheus is a metrics engine database that scrapes metrics at scheduled intervals and sends metrics to Time Series Database (TSDB) and uses PromQL as a query language to send queries to Grafana for visualization 
 
 http://localhost:9090 
