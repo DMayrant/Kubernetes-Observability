@@ -1,79 +1,34 @@
-pipeline {
-    agent any 
+#!/bin/bash 
 
-    stages {
-        stage ('Image Pull') {
-            steps {
-                sh '''
-                docker pull nginx:1.28.0
-                '''
-            }
-        }
-        stage ('Trivy Scan') {
-            steps {
-                sh '''
-                echo 'Scanning for vulnerabilities...'
-                trivy image --severity HIGH,CRITICAL nginx:1.28.0 || true
-                '''
-            }
-        }
-        stage ('SNYK Dependency Scan') {
-            steps {
-                sh '''
-                echo 'Executing SNYK scan...' 
-                snyk container test nginx:1.28.0
-                '''
-            }
-        }
-        stage ('Kubernetes Deployment') {
-            steps {
-                sh '''
-                echo 'Deploying workloads to US-east-1'
-                set -euo pipefail  
+set -euo pipefail 
 
-                kubectl create deployment nginx-web --image=nginx:1.28.0 --port=80 --replicas=5 --dry-run=client -o yaml > nginx-web.yaml
-                kubectl expose deployment nginx-web --port=80 --type=ClusterIP --dry-run=client -o yaml > nginx-svc.yaml
-                kubectl run curl --image=curlimages/curl:7.83.0 --dry-run=client -o yaml > curl.yaml
-                kubectl apply -f nginx-web.yaml
-                kubectl apply -f nginx-svc.yaml 
-                kubectl apply -f curl.yaml
-                kubectl get pods 
-                kubectl rollout status deployment nginx-web
-                '''
-            }
-        }
-        stage ('Port-forward') {
-            steps {
-                sh '''
-                kubectl port-forward svc/nginx-web 4000:80 &
-                PF_PID=$!
-                
-                sleep 10
+#Setting up Jenkins server" 
+echo "Setting up Jenkins server..."
 
-                docker run --rm \
-                -t owasp/zap2docker-stable zap-baseline.py \
-                -t http://localhost:4000 \
-                -r zap-report.html || true
-                kill $PF_PID
-                '''
-            }
-        }
-        stage ('Cleanup 🗑️') {
-            steps {
-                sh '''
-                kubectl delete -f nginx-web.yaml --ignore-not-found=true
-                kubectl delete -f nginx-svc.yaml --ignore-not-found=true
-                kubectl delete -f curl.yaml --ignore-not-found=true
-                '''
-            }
-        }
-    }
-    post {
-        success {
-            echo 'Pipeline is execution successful ✅'
-        }
-        failure {
-            echo 'Pipeline failed, please check logs ⚠️'
-        }
-    }
-}
+docker exec -u root jenkins_master bash -c "
+set -e 
+
+apt-get update &&
+apt-get install -y docker.io npm &&
+docker --version &&
+
+chown root:docker /var/run/docker.sock &&
+chmod 660 /var/run/docker.sock &&
+ls -l /var/run/docker.sock &&
+usermod -aG docker jenkins &&
+
+npm --version &&
+npm install -g snyk &&
+snyk --version &&
+
+mkdir -p ~/.docker/cli-plugins &&
+curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh &&
+docker scout version
+
+curl -s https://raw.githubusercontent.com/kubescape/kubescape/master/install.sh | bash &&
+kubescape version"
+
+echo "restarting Jenkins server..."
+docker restart jenkins_master
+echo "installs complete ✅"
+
