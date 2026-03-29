@@ -32,7 +32,7 @@ pipeline {
                 set -euo pipefail  
 
                 kubectl create deployment nginx-web --image=nginx:1.28.0 --port=80 --replicas=5 --dry-run=client -o yaml > nginx-web.yaml
-                kubectl expose deployment nginx-web --port=80 --type=ClusterIP --dry-run=client -o yaml > nginx-svc.yaml
+                kubectl create service ClusterIP nginx-web --tcp=80:80 --dry-run=client -o yaml > nginx-svc.yaml
                 kubectl run curl --image=curlimages/curl:7.83.0 --dry-run=client -o yaml > curl.yaml
                 kubectl apply -f nginx-web.yaml
                 kubectl apply -f nginx-svc.yaml 
@@ -45,7 +45,7 @@ pipeline {
         stage ('Port-forward') {
             steps {
                 sh '''
-                kubectl port-forward svc/nginx-web 4000:80 &
+                kubectl port-forward svc/nginx-web 4000:80 > pf.log 2>&1 &
                 PF_PID=$!
                 
                 sleep 5
