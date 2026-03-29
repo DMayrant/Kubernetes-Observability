@@ -48,10 +48,11 @@ pipeline {
                 kubectl port-forward svc/nginx-web 4000:80 > pf.log 2>&1 &
                 PF_PID=$!
                 
+                echo "=== Waiting for Service ==="
                 sleep 5
 
                 docker run --rm \
-                -t owasp/zap2docker-stable zap-baseline.py \
+                -t zaproxy/zap-stable zap-baseline.py \
                 -t http://localhost:4000 \
                 -r zap-report.html || true
                 kill $PF_PID
