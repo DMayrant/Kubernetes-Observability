@@ -1,4 +1,5 @@
 #!/bin/bash 
+
 set -euo pipefail 
 
 #Setting up Jenkins server" 
@@ -31,10 +32,3 @@ echo "restarting Jenkins server..."
 docker restart jenkins_master
 echo "installs complete ✅"
 
-# Pushing code repo to Jenkins CI/CD server
-echo "Pushing code-repo to Jenkins CI/CD pipeline..."
-git init 
-git add Jenkinsfile 
-git commit -m "pipeline update"
-git push 
-echo "Jenkins CI/CD pipeline updated successfully! 🚀"

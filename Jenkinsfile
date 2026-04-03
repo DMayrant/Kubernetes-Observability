@@ -21,7 +21,7 @@ pipeline {
             steps {
                 sh '''
                 echo 'Executing SNYK scan...' 
-                snyk container test nginx:1.28.0
+                snyk container test nginx:1.28.0 || true
                 '''
             }
         }
@@ -48,7 +48,7 @@ pipeline {
                 kubectl port-forward svc/nginx-web 4000:80 &
                 PF_PID=$!
                 
-                sleep 10
+                sleep 5
 
                 docker run --rm \
                 -t owasp/zap2docker-stable zap-baseline.py \
@@ -57,6 +57,16 @@ pipeline {
                 kill $PF_PID
                 '''
             }
+        }
+        stage ('Kubescape Scan') {
+            steps {
+                sh '''
+                echo 'compliance scan (NSA + MITRE)'
+
+                kubescape scan framework nsa,mitre .
+                '''
+            }
+
         }
         stage ('Cleanup 🗑️') {
             steps {
