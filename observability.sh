@@ -9,12 +9,12 @@ SERVICE="nginx-deploy"
 
 # Resource Creation 
 if kubectl get deploy "$DEPLOYMENT" &> /dev/null; then 
-    echo "Deployment $DEPLOYMENT already exists"
+    echo "Deployment "$DEPLOYMENT" already exists"
     exit 1
 fi
 
 if kubectl get sa "$SA" &> /dev/null; then
-    echo "ServiceAccount $SA already exists"
+    echo "ServiceAccount "$SA" already exists"
     exit 1
 fi
 

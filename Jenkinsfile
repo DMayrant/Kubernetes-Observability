@@ -32,7 +32,7 @@ pipeline {
                 set -euo pipefail  
 
                 kubectl create deployment nginx-web --image=nginx:1.28.0 --port=80 --replicas=5 --dry-run=client -o yaml > nginx-web.yaml
-                kubectl expose deployment nginx-web --port=80 --type=ClusterIP --dry-run=client -o yaml > nginx-svc.yaml
+                kubectl create service clusterip nginx-web --tcp=80:80 --dry-run=client -o yaml > nginx-svc.yaml
                 kubectl run curl --image=curlimages/curl:7.83.0 --dry-run=client -o yaml > curl.yaml
                 kubectl apply -f nginx-web.yaml
                 kubectl apply -f nginx-svc.yaml 
@@ -52,6 +52,14 @@ pipeline {
 
                 docker run --rm \
                 -t owasp/zap2docker-stable zap-baseline.py \
+                kubectl port-forward svc/nginx-web 4000:80 > pf.log 2>&1 &
+                PF_PID=$!
+                
+                echo "=== Waiting for Service ==="
+                sleep 5
+
+                docker run --rm \
+                -t zaproxy/zap-stable zap-baseline.py \
                 -t http://localhost:4000 \
                 -r zap-report.html || true
                 kill $PF_PID
@@ -86,4 +94,8 @@ pipeline {
             echo 'Pipeline failed, please check logs ⚠️'
         }
     }
+
 }
+
+}
+
