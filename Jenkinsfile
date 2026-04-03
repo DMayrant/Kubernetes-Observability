@@ -45,6 +45,13 @@ pipeline {
         stage ('Port-forward') {
             steps {
                 sh '''
+                kubectl port-forward svc/nginx-web 4000:80 &
+                PF_PID=$!
+                
+                sleep 5
+
+                docker run --rm \
+                -t owasp/zap2docker-stable zap-baseline.py \
                 kubectl port-forward svc/nginx-web 4000:80 > pf.log 2>&1 &
                 PF_PID=$!
                 
@@ -87,4 +94,8 @@ pipeline {
             echo 'Pipeline failed, please check logs ⚠️'
         }
     }
+
 }
+
+}
+
